@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/stores";
   import { marked } from "marked";
+  import { tick } from "svelte";
 
   let slides = [];
   let isLoading = true;
@@ -9,55 +10,54 @@
   
 
   async function fetchSlides() {
-    const presentationId = $page.params.id;
+  const presentationId = $page.params.id;
 
-    if (!presentationId) {
-      console.error("❌ HIBA: A presentationId hiányzik!");
-      errorMessage = "Nem található a prezentáció azonosító!";
+  if (!presentationId) {
+    console.error("❌ HIBA: A presentationId hiányzik!");
+    errorMessage = "Nem található a prezentáció azonosító!";
+    isLoading = false;
+    return;
+  }
+
+  console.log(`📌 Diák lekérése: http://localhost:3000/api/presentations/${presentationId}/slides`);
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/presentations/${presentationId}/slides`);
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("⚠️ API hiba:", errorData);
+      errorMessage = `Hiba történt a diák lekérésekor: ${errorData.error}`;
       isLoading = false;
       return;
     }
 
-    console.log(`📌 Diák lekérése: http://localhost:3000/api/presentations/${presentationId}/slides`);
+    const data = await res.json();
+    slides = data.slides;
+    isLoading = false;
 
-    try {
-      const res = await fetch(`http://localhost:3000/api/presentations/${presentationId}/slides`);
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("⚠️ API hiba:", errorData);
-        errorMessage = `Hiba történt a diák lekérésekor: ${errorData.error}`;
-        isLoading = false;
-        return;
-      }
+    await tick(); // ⏳ várjuk meg, hogy a DOM renderelje a {#each} blokkokat
 
-      const data = await res.json();
-      console.log("📌 Sikeresen lekérve a diák:", data.slides);
+    const Reveal = (await import("reveal.js")).default;
+    await Reveal.initialize({
+      controls: true,
+      progress: true,
+      slideNumber: true,
+      history: true,
+      transition: "slide",
+      width: 1280,
+      height: 800,
+      margin: 0.05,
+      center: true
+    });
 
-      slides = data.slides;
-      isLoading = false;
+    Reveal.sync(); // 🧠 ha a render utáni frissítés kell
 
-      // ✅ **Reveal.js betöltése és inicializálása**
-      setTimeout(async () => {
-        const Reveal = (await import("reveal.js")).default;
-        Reveal.initialize({
-  controls: true,
-  progress: true,
-  slideNumber: true,
-  history: true,
-  transition: "slide",
-  width: 1280,      // ✅ szélesebb dia
-  height: 800,      // ✅ magasabb dia
-  margin: 0.05,     // ✅ kis külső margó (5%)
-  center: true      // ✅ tartalom középre igazítása
-});
-      }, 300);
-
-    } catch (error) {
-      console.error("⚠️ Hálózati hiba:", error);
-      errorMessage = "Nem sikerült kapcsolódni a szerverhez!";
-      isLoading = false;
-    }
+  } catch (error) {
+    console.error("⚠️ Hálózati hiba:", error);
+    errorMessage = "Nem sikerült kapcsolódni a szerverhez!";
+    isLoading = false;
   }
+}
 
   onMount(fetchSlides);
 </script>
@@ -116,9 +116,11 @@
 <style>
   .reveal {
     width: 100%;
-    height: 100vh;
+    height: 68vh; /* ne fix 100vh legyen, hanem minimum annyi */
     
   }
+  
+
   .reveal .slides section {
   display: flex;
   flex-direction: column;
@@ -147,7 +149,7 @@
   max-width: 100%;
   overflow-wrap: break-word;
   max-height: 40vh;
-  overflow-y: auto;
+  
 }
 
   .presentation-container {

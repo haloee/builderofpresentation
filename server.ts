@@ -62,13 +62,36 @@ app.get("/api/presentations/:presentationId/slides", async (c) => {
 // 🔹 Dia módosítása (PUT - Automatikus mentéshez)
 app.put("/api/presentations/:presentationId/slides/:slideId", async (c) => {
     const slideId = c.req.param("slideId");
-    const { content, imagePath } = await c.req.json();
 
     if (!slideId) return c.json({ error: "Slide ID is required" }, 400);
 
-    await db.update(slides).set({ content, imagePath }).where(eq(slides.id, slideId));
-    return c.json({ success: true });
+    try {
+        const body = await c.req.json();
+
+        console.log("🟡 PUT Body méret (karakterben):", JSON.stringify(body).length);
+
+        const updateData: { content?: string; imagePath?: string } = {};
+
+        if (typeof body.content === "string") {
+            updateData.content = body.content;
+        }
+        if (typeof body.imagePath === "string") {
+            updateData.imagePath = body.imagePath;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return c.json({ error: "No valid fields to update" }, 400);
+        }
+
+        await db.update(slides).set(updateData).where(eq(slides.id, slideId));
+        return c.json({ success: true });
+
+    } catch (err) {
+        console.error("❌ PUT ERROR:", err);
+        return c.json({ error: "Server failed to process request" }, 500);
+    }
 });
+
 
 // 🔹 Új dia hozzáadása (POST)
 app.post("/api/presentations/:presentationId/slides", async (c) => {
