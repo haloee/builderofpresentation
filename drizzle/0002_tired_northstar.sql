@@ -1,0 +1,1 @@
+ALTER TABLE `presentations` ADD `image_folder_path` text NOT NULL;
