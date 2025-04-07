@@ -1,0 +1,1 @@
+ALTER TABLE `slides` MODIFY COLUMN `imagePath` mediumtext;
