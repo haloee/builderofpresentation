@@ -1,0 +1,1 @@
+ALTER TABLE `presentations` ADD `deleted_at` datetime;

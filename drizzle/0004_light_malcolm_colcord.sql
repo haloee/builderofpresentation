@@ -1,0 +1,1 @@
+ALTER TABLE `slides` ADD `videoPath` text;

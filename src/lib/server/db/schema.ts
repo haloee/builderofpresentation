@@ -14,6 +14,7 @@ export const presentations = mysqlTable("presentations", {
   ownerId: varchar("owner_id", { length: 36 }).notNull(),
   imageFolderPath: text("image_folder_path").notNull(),
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  deletedAt: datetime("deleted_at")
 });
 
 export const presentationPermissions = mysqlTable(
@@ -33,4 +34,5 @@ export const slides = mysqlTable("slides", {
 	presentationId: varchar("presentation_id", { length: 36 }).notNull(),
 	content: text("content"),
 	imagePath: mediumtext("imagePath"), // Új mező a képek tárolására
+  videoPath: text("videoPath"),
   });

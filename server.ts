@@ -96,7 +96,7 @@ app.put("/api/presentations/:presentationId/slides/:slideId", async (c) => {
 // 🔹 Új dia hozzáadása (POST)
 app.post("/api/presentations/:presentationId/slides", async (c) => {
     const presentationId = c.req.param("presentationId");
-    const { content, imagePath } = await c.req.json();
+    const { content, imagePath, videoPath } = await c.req.json();
 
     // 📌 Ha a presentationId hiányzik
     if (!presentationId) {
@@ -114,7 +114,8 @@ app.post("/api/presentations/:presentationId/slides", async (c) => {
         id: crypto.randomUUID(),
         presentationId,
         content: content ?? "",
-        imagePath: imagePath ?? null
+        imagePath: imagePath ?? null,
+        videoPath: videoPath ?? null
     };
 
     try {
@@ -233,7 +234,7 @@ app.delete("/api/presentations/:presentationId/slides/:slideId", async (c) => {
 
     if (!slideId) return c.json({ error: "Slide ID is required" }, 400);
 
-    const updateData: { content?: string; imagePath?: string } = {};
+    const updateData: { content?: string; imagePath?: string; videoPath?: string } = {};
 
     if (typeof body.content === "string") {
         updateData.content = body.content;
@@ -241,6 +242,10 @@ app.delete("/api/presentations/:presentationId/slides/:slideId", async (c) => {
     if (typeof body.imagePath === "string") {
         updateData.imagePath = body.imagePath;
     }
+    if (typeof body.videoPath === "string") {
+        updateData.videoPath = body.videoPath;
+      }
+      
 
     if (Object.keys(updateData).length === 0) {
         return c.json({ error: "No valid fields to update" }, 400);

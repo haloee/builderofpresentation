@@ -87,8 +87,12 @@
 
     const newSlide = {
       presentationId,
-      content: ["text", "text-image", "video-text"].includes(newSlideType) ? "Új szöveg" : newSlideType === "video" ? "https://www.youtube.com/watch?v=dQw4w9WgXcQ" : null,
-      imagePath: ["image", "image-text"].includes(newSlideType) ? "default.png" : newSlideType === "image-base64" ? "BASE64_PLACEHOLDER" : null
+      content: ["text", "text-image", "video-text"].includes(newSlideType) ? "Új szöveg" :  null,
+      videoPath: ["video", "video-text"].includes(newSlideType)
+    ? "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    : null,
+      imagePath: ["image", "image-text"].includes(newSlideType)
+       ? "default.png" : newSlideType === "image-base64" ? "BASE64_PLACEHOLDER" : null
     };
 
     console.log("📌 Új dia küldése:", JSON.stringify(newSlide));
@@ -366,6 +370,8 @@ async function selectImageAsBase64(slide) {
       
 
     {/if}
+  
+
   </div>
         {/if}
       </form>
