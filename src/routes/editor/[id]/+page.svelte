@@ -3,6 +3,7 @@
   import { page } from "$app/stores";
   import PrezentacioView from "./PrezentacioView.svelte";
   import { marked } from "marked";
+  import { goto } from '$app/navigation';
 
   let slides = [];
   let newSlideType = "text";
@@ -266,7 +267,9 @@ async function selectImageAsBase64(slide) {
   input.click();
 }
 
-
+function goToDashboard() {
+  goto('/dashboard');
+}
 
 
 </script>
@@ -284,6 +287,12 @@ async function selectImageAsBase64(slide) {
 
   {#if !showPresentation}
     <div class="d-flex align-items-center gap-3 mb-4">
+    <button
+    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition"
+    on:click={goToDashboard}
+  >
+      Vissza a dashboardra
+  </button>
       <label for="slideType" class="form-label mb-0">Dia típusa:</label>
       <select id="slideType" bind:value={newSlideType} class="form-select w-auto">
         <option value="text">Csak szöveg</option>

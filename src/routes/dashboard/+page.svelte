@@ -84,7 +84,7 @@
 
   {#if deletedPresentations.length > 0}
     <div class="max-w-2xl w-full bg-red-50 border border-red-200 shadow-lg rounded-xl p-6">
-      <h2 class="text-2xl font-bold text-red-800 mb-4 text-center">🗑️ Törölt prezentációk (15 napig visszaállítható)</h2>
+      <h2 class="text-2xl font-bold text-red-800 mb-4 text-center">  Törölt prezentációk (15 napig visszaállítható)</h2>
 
       <ul class="space-y-4">
         {#each deletedPresentations as presentation}
