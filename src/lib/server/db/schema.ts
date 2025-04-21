@@ -36,3 +36,14 @@ export const slides = mysqlTable("slides", {
 	imagePath: mediumtext("imagePath"), // Új mező a képek tárolására
   videoPath: text("videoPath"),
   });
+
+  export const presentationComments = mysqlTable("presentation_comments", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    presentationId: varchar("presentation_id", { length: 36 })
+      .notNull()
+      .references(() => presentations.id, { onDelete: "cascade" }),
+  
+    userId: varchar("user_id", { length: 36 }).notNull(), // opcionálisan: .references(() => users.id, { onDelete: "cascade" })
+    content: text("content").notNull(),
+    createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull()
+  });

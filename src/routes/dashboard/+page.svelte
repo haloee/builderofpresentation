@@ -4,6 +4,7 @@
 
   let presentations = [];
   let deletedPresentations = [];
+  let sharedPresentations = [];
 
   async function fetchPresentations() {
     const res = await fetch("/api/presentations");
@@ -11,6 +12,7 @@
 
     presentations = data.presentations.filter(p => !p.deletedAt);
     deletedPresentations = data.presentations.filter(p => p.deletedAt);
+    sharedPresentations = data.sharedWithMe;
   }
 
   async function createPresentation() {
@@ -101,4 +103,26 @@
       </ul>
     </div>
   {/if}
+  {#if sharedPresentations.length > 0}
+  <div class="max-w-4xl w-full bg-blue-50 border border-blue-200 shadow-lg rounded-xl p-6">
+    <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">
+      Megosztott prezentációk
+    </h2>
+
+    <ul class="space-y-4">
+      {#each sharedPresentations as pres}
+        <li class="p-4 bg-white rounded-lg shadow flex justify-between items-center">
+          <span class="text-gray-800">{pres.title}</span>
+          <button
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            on:click={() => openPresentation(pres.id)}
+          >
+            Megnyitás
+          </button>
+        </li>
+      {/each}
+    </ul>
+  </div>
+{/if}
+
 </section>

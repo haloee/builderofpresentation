@@ -9,6 +9,16 @@
   let newSlideType = "text";
   let showPresentation = false;
   let saveTimeouts = new Map(); // Egyedi mentési időzítők a diákhoz
+  let allUsers = [];
+  let selectedUserId = "";
+  let selectedPermission = "read";
+  let hasEditPermission = true;
+  let showSharePanel=false;
+  let comments = [];
+  let newComment = "";
+  let commentsVisible = false;
+  let isLoadingComments = false;
+  let errorLoadingComments = "";
   let folderPath = ""; // 📌 A kiválasztott mappa elérési útvonala
   // 📌 Diák lekérése az API-ból
  async function fetchSlides() {
@@ -65,7 +75,21 @@
             ...slide,
             imagePath: slide.imagePath ? `http://localhost:3000/images/${presentationId}/${slide.imagePath}` : null
         }));
-
+// ✅ Jogosultság lekérdezése
+        try {
+          const permissionRes = await fetch(`http://localhost:5173/api/presentations/${presentationId}/permission`);
+          if (permissionRes.ok) {
+            const permData = await permissionRes.json();
+            hasEditPermission = permData.permission === "edit";
+            console.log("🎯 Jogosultság:", permData.permission);
+          } else {
+            console.warn("⚠️ Nem sikerült lekérni a jogosultságot.");
+            hasEditPermission = false;
+          }
+        } catch (err) {
+          console.error("❌ Jogosultság lekérési hiba:", err);
+          hasEditPermission = false;
+        }
     } catch (error) {
         console.error("⚠️ Hálózati hiba:", error);
         alert("Nem sikerült kapcsolódni a szerverhez!");
@@ -74,8 +98,91 @@
 
 
 
-  onMount(fetchSlides);
+  onMount(async () => {
+  await fetchSlides();
+  await fetchUsers();
+  await fetchComments();
+});
+async function fetchUsers() {
+  try {
+    const res = await fetch("/api/users");
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    allUsers = data.users;
+  } catch (err) {
+    console.error("❌ Felhasználók betöltése sikertelen:", err);
+  }
+}
+async function sharePresentation() {
+  const presentationId = $page.params.id;
+  if (!presentationId || !selectedUserId || !selectedPermission) {
+    alert("Hiányzó mezők a megosztáshoz.");
+    return;
+  }
 
+  try {
+    const res = await fetch(`/api/presentations/${presentationId}/share`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: selectedUserId,
+        permission: selectedPermission
+      })
+    });
+
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("❌ Megosztási hiba:", error);
+      alert("Nem sikerült megosztani a prezentációt.");
+      return;
+    }
+
+    alert("✅ Prezentáció megosztva!");
+  } catch (err) {
+    console.error("⚠️ Hiba megosztás közben:", err);
+    alert("Nem sikerült csatlakozni a szerverhez.");
+  }
+}
+async function fetchComments() {
+  const presentationId = $page.params.id;
+  if (!presentationId) return;
+
+  isLoadingComments = true;
+  try {
+    const res = await fetch(`/api/presentations/${presentationId}/comments`);
+    const data = await res.json();
+    comments = data.comments;
+  } catch (err) {
+    console.error("⚠️ Hiba a kommentek lekérdezésekor:", err);
+    errorLoadingComments = "Nem sikerült betölteni a kommenteket.";
+  } finally {
+    isLoadingComments = false;
+  }
+}
+
+async function postComment() {
+  const presentationId = $page.params.id;
+  if (!newComment.trim()) return;
+
+  const res = await fetch(`/api/presentations/${presentationId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content: newComment }),
+  });
+
+  if (res.ok) {
+    newComment = "";
+    await fetchComments(); // Frissítés
+  } else {
+    const errText = await res.text();
+    console.error("❌ Komment hiba:", errText);
+    alert("Nem sikerült elküldeni a kommentet.");
+  }
+}
+function toggleComments() {
+  commentsVisible = !commentsVisible;
+  if (commentsVisible) fetchComments();
+}
   // 📌 Új dia hozzáadása az API-hoz
   async function addSlide() {
     const presentationId = $page.params.id;
@@ -280,9 +387,51 @@ function goToDashboard() {
     <button class="btn btn-primary" on:click={() => (showPresentation = !showPresentation)}>
       {showPresentation ? "Szerkesztő nézet" : "Prezentáció nézet"}
     </button>
-    <button on:click={selectFolder}>📁 Mappa kiválasztása</button>
-<p>Mappa: {folderPath || "Nincs kiválasztva"}</p>
+    <!-- Megosztás gomb -->
+<button
+  class="btn btn-outline-primary"
+  on:click={() => showSharePanel = !showSharePanel}
+>
+  Prezentáció megosztása
+</button>
 
+<!-- 🔽 Megosztási panel -->
+{#if showSharePanel}
+  <div class="card mt-3 p-3 border border-primary shadow rounded" style="max-width: 600px;">
+    <h5 class="text-primary fw-bold mb-3">Prezentáció megosztása</h5>
+
+    <div class="mb-3">
+      <label class="form-label">Felhasználó:</label>
+      <select bind:value={selectedUserId} class="form-select">
+        <option disabled value="">-- Válassz felhasználót --</option>
+        {#each allUsers as user}
+          <option value={user.id}>{user.username}</option>
+        {/each}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Jogosultság:</label>
+      <select bind:value={selectedPermission} class="form-select">
+        <option value="read">Csak olvasás</option>
+        <option value="edit">Szerkesztés</option>
+      </select>
+    </div>
+
+    <div class="d-flex gap-3 justify-content-end">
+      <button
+        class="btn btn-primary"
+        on:click={sharePresentation}
+        disabled={!selectedUserId || !selectedPermission}
+      >
+        Megosztás
+      </button>
+      <button class="btn btn-secondary" on:click={() => showSharePanel = false}>
+        Mégse
+      </button>
+    </div>
+  </div>
+{/if}
   </div>
 
   {#if !showPresentation}
@@ -303,18 +452,73 @@ function goToDashboard() {
         <option value="video-text">Videó + Szöveg</option>
         <option value="image-base64">Kép beágyazása (Base64)</option>
       </select>
-      <button class="btn btn-success" on:click={addSlide}>➕ Új dia hozzáadása</button>
+      <button class="btn btn-success" on:click={addSlide} disabled={!hasEditPermission}>Új dia hozzáadása</button>
+      <div class="my-8">
+  <button
+    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+    on:click={toggleComments}
+  >
+    {commentsVisible ? "Kommentek elrejtése" : "Kommentek megjelenítése"}
+  </button>
+
+  {#if commentsVisible}
+    <div class="mt-4 p-4 bg-white border rounded shadow">
+      <h3 class="text-xl font-bold mb-4">Kommentek</h3>
+
+      {#if isLoadingComments}
+        <p>Betöltés...</p>
+      {:else if errorLoadingComments}
+        <p class="text-red-500">{errorLoadingComments}</p>
+      {:else if comments.length === 0}
+        <p>Még nincs komment ehhez a prezentációhoz.</p>
+      {:else}
+        <div class="max-h-52 overflow-y-auto pr-2 border rounded-md">
+  <ul class="space-y-4 px-2 py-2">
+    {#each comments as comment}
+      <li class="border-b pb-2">
+        <div class="text-sm text-gray-600">
+          {comment.userId} – {new Date(comment.createdAt).toLocaleString()}
+        </div>
+        <div class="text-md text-gray-800 whitespace-pre-wrap">{comment.content}</div>
+      </li>
+    {/each}
+  </ul>
+</div>
+
+      {/if}
+
+      <div class="mt-4">
+        <textarea
+          bind:value={newComment}
+          placeholder="Írj egy kommentet..."
+          rows="3"
+          class="w-full p-2 border rounded mb-2"
+        ></textarea>
+        <button
+          on:click={postComment}
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Komment küldése
+        </button>
+      </div>
+    </div>
+  {/if}
+</div>
+
+
+
+
     </div>
 <div class="btn-group ms-2 flex-wrap" style="gap: 4px">
-  <button class="btn btn-outline-secondary btn-sm" title="Félkövér például **szöveg**" on:click={() => insertMarkdown('**félkövér**')}>B</button>
-  <button class="btn btn-outline-secondary btn-sm" title="dőlt például _szöveg_" on:click={() => insertMarkdown('_dőlt_')}>I</button>
-  <button class="btn btn-outline-secondary btn-sm" title="áthúzott például ~~szöveg~~" on:click={() => insertMarkdown('~~áthúzott~~')}>S</button>
-  <button class="btn btn-outline-secondary btn-sm" title="címsor 1 például #szöveg" on:click={() => insertMarkdown('# Címsor 1')}>H1</button>
-  <button class="btn btn-outline-secondary btn-sm" title="címsor 2 például ##szöveg" on:click={() => insertMarkdown('## Címsor 2')}>H2</button>
-  <button class="btn btn-outline-secondary btn-sm" title="idézet például >szöveg" on:click={() => insertMarkdown('> idézet')}>❝</button>
-  <button class="btn btn-outline-secondary btn-sm" title="lista például -szöveg" on:click={() => insertMarkdown('- listaelem')}>•</button>
-  <button class="btn btn-outline-secondary btn-sm" title="link például [szöveg](link)" on:click={() => insertMarkdown('[szöveg](https://url.hu)')}>🔗</button>
-  <button class="btn btn-outline-secondary btn-sm" title="kódrészlet például `szöveg`" on:click={() => insertMarkdown('`kódrészlet`')}>{"</>"}</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="Félkövér például **szöveg**" on:click={() => insertMarkdown('**félkövér**')}>B</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="dőlt például _szöveg_" on:click={() => insertMarkdown('_dőlt_')}>I</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="áthúzott például ~~szöveg~~" on:click={() => insertMarkdown('~~áthúzott~~')}>S</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="címsor 1 például #szöveg" on:click={() => insertMarkdown('# Címsor 1')}>H1</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="címsor 2 például ##szöveg" on:click={() => insertMarkdown('## Címsor 2')}>H2</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="idézet például >szöveg" on:click={() => insertMarkdown('> idézet')}>❝</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="lista például -szöveg" on:click={() => insertMarkdown('- listaelem')}>•</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="link például [szöveg](link)" on:click={() => insertMarkdown('[szöveg](https://url.hu)')}>🔗</button>
+  <button class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="kódrészlet például `szöveg`" on:click={() => insertMarkdown('`kódrészlet`')}>{"</>"}</button>
 </div>
 
     {#each slides as slide, index}
@@ -328,13 +532,14 @@ function goToDashboard() {
         bind:value={slide.imagePath}
         placeholder="Kép neve (pl. csengo.png)"
         class="form-control"
+        disabled={!hasEditPermission}
         on:input={() => saveSlide(slide)}
       />
       
 
       <button class="btn btn-secondary" on:click={() => selectImage(slide)}>📂</button>
       {#if slide.imagePath === "BASE64_PLACEHOLDER" || (slide.imagePath?.startsWith("data:image"))}
-  <button class="btn btn-warning" on:click={() => selectImageAsBase64(slide)}>📷 Base64 feltöltés</button>
+  <button class="btn btn-warning" on:click={() => selectImageAsBase64(slide)} disabled={!hasEditPermission}>📷 Base64 feltöltés</button>
 {/if}
 
 
@@ -364,15 +569,18 @@ function goToDashboard() {
       
     {:else}
       <!-- Markdown textarea -->
+      {#if hasEditPermission}
       <div class="text-end mt-2">
   <button class="btn btn-danger btn-sm" type="button" on:click={() => deleteSlide(slide)}>
     🗑️ Dia törlése
   </button>
 </div>
+{/if}
       <textarea
         bind:value={slide.content}
         class="form-control"
         rows="4"
+        disabled={!hasEditPermission}
         on:input={() => saveSlide(slide)}
         placeholder="Írj markdown szöveget..."
       ></textarea>

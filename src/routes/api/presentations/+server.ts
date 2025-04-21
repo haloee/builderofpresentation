@@ -2,7 +2,7 @@ import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import { db } from "$lib/server/db";
 import { presentations } from "$lib/server/db/schema";
-
+import { presentationPermissions } from "$lib/server/db/schema";
 /**
  * GET /api/presentations
  * Listázza a bejelentkezett felhasználó prezentációit
@@ -13,11 +13,35 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 
   const userId = locals.user.id;
-  const userPresentations = await db.select().from(presentations).where(eq(presentations.ownerId, userId));
 
-  return new Response(JSON.stringify({ presentations: userPresentations }), {
-    headers: { "Content-Type": "application/json" },
-  });
+  // Saját prezentációk lekérdezése
+  const userPresentations = await db
+    .select()
+    .from(presentations)
+    .where(eq(presentations.ownerId, userId));
+
+  // Megosztott prezentációk lekérdezése
+  const sharedWithMe = await db
+    .select({
+      id: presentations.id,
+      title: presentations.title,
+      ownerId: presentations.ownerId,
+      imageFolderPath: presentations.imageFolderPath,
+      createdAt: presentations.createdAt,
+      deletedAt: presentations.deletedAt,
+      permission: presentationPermissions.permission
+    })
+    .from(presentationPermissions)
+    .innerJoin(presentations, eq(presentationPermissions.presentationId, presentations.id))
+    .where(eq(presentationPermissions.userId, userId));
+
+  return new Response(
+    JSON.stringify({
+      presentations: userPresentations,
+      sharedWithMe
+    }),
+    { headers: { "Content-Type": "application/json" } }
+  );
 };
 
 /**
@@ -38,6 +62,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     id: crypto.randomUUID(),
     title,
     ownerId: locals.user.id,
+    imageFolderPath: `/images/${crypto.randomUUID()}`, // Example value for imageFolderPath
   });
 
   return new Response(JSON.stringify({ success: true, presentation: newPresentation }), {
