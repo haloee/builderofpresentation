@@ -54,6 +54,7 @@
 		"hono": "^4.7.4",
 		"marked": "^15.0.7",
 		"mysql2": "^3.13.0",
-		"reveal.js": "^5.1.0"
+		"reveal.js": "^5.1.0",
+		"tailwind-merge": "^3.3.1"
 	}
 }

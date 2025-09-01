@@ -4,7 +4,8 @@ import { eq, and } from "drizzle-orm";
 import {
   presentationComments,
   presentationPermissions,
-  presentations
+  presentations,
+  users
 } from "$lib/server/db/schema";
 
 /**
@@ -59,12 +60,33 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
  * GET /api/presentations/[id]/comments
  * Kommentek lekérése időrendi sorrendben
  */
-export const GET: RequestHandler = async ({ params }) => {
+/*export const GET: RequestHandler = async ({ params }) => {
   const presentationId = params.id;
 
   const comments = await db
     .select()
     .from(presentationComments)
+    .where(eq(presentationComments.presentationId, presentationId))
+    .orderBy(presentationComments.createdAt);
+
+  return new Response(JSON.stringify({ comments }), {
+    headers: { "Content-Type": "application/json" }
+  });
+};*/
+export const GET: RequestHandler = async ({ params }) => {
+  const presentationId = params.id;
+
+  const comments = await db
+    .select({
+      id: presentationComments.id,
+      presentationId: presentationComments.presentationId,
+      userId: presentationComments.userId,
+      username: users.username,               // ⬅️ EZT IS KÉRJÜK LE
+      content: presentationComments.content,
+      createdAt: presentationComments.createdAt
+    })
+    .from(presentationComments)
+    .innerJoin(users, eq(users.id, presentationComments.userId))   // ⬅️ JOIN users
     .where(eq(presentationComments.presentationId, presentationId))
     .orderBy(presentationComments.createdAt);
 

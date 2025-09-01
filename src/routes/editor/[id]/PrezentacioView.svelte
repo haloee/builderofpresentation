@@ -2,8 +2,8 @@
   import { onMount } from "svelte";
   import { page } from "$app/stores";
   import { marked } from "marked";
-  import { tick } from "svelte";
-
+  import { tick, createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
   let slides = [];
   let isLoading = true;
   let errorMessage = null;
@@ -58,7 +58,10 @@
     isLoading = false;
   }
 }
-
+function requestRefreshCycle() {
+    // Nem reloadolunk, hanem szólunk a szülőnek
+    dispatch("refresh");
+  }
   onMount(fetchSlides);
 </script>
 
@@ -69,6 +72,7 @@
 <section class="presentation-container">
   <h2 class="h3">Prezentáció nézet</h2>
   <button on:click={() => window.location.reload()} class="btn btn-secondary">
+
     Frissítés
   </button>
 </section>
