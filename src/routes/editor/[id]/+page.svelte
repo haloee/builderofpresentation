@@ -108,6 +108,23 @@
   await fetchUsers();
   await fetchComments();
 });
+ onMount(async () => {
+    const shouldReopen = sessionStorage.getItem('reopenPresentation');
+    if (shouldReopen === '1') {
+      sessionStorage.removeItem('reopenPresentation');
+      await tick(); // a DOM már készen van
+
+      // robusztus auto-kattintás (ha a ref még nem él, várunk egy frame-et)
+      const clickWhenReady = () => {
+        if (toggleViewBtn) {
+          toggleViewBtn.click(); // mintha a felhasználó nyomta volna meg
+        } else {
+          requestAnimationFrame(clickWhenReady);
+        }
+      };
+      clickWhenReady();
+    }
+  });
 async function fetchUsers() {
   try {
     const res = await fetch("/api/users");
@@ -463,122 +480,158 @@ async function handlePresentationRefresh() {
 </script>
 
 <section class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3">Prezentáció szerkesztő</h2>
-    <button  class="btn btn-primary" on:click={() => (showPresentation = !showPresentation)}>
+  <!-- ✅ RESZPONZÍV fejléc: a gombok mobilon w-full, egymás alatt; desktopon egy sorban -->
+<div class="editor-header flex flex-wrap items-center gap-3 md:gap-4 mb-4">
+  <h2 class="h3 w-full sm:w-auto">Prezentáció szerkesztő</h2>
+
+  <div class="ms-auto flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+    <button
+      bind:this={toggleViewBtn}
+      class="btn btn-primary w-full sm:w-auto"
+      on:click={() => (showPresentation = !showPresentation)}
+    >
       {showPresentation ? "Szerkesztő nézet" : "Prezentáció nézet"}
     </button>
-    <!-- Megosztás gomb -->
-<button
-  class="btn btn-outline-primary"
-  on:click={() => showSharePanel = !showSharePanel}
->
-  Prezentáció megosztása
-</button>
 
-<!-- 🔽 Megosztási panel -->
-{#if showSharePanel}
-  <div class="card mt-3 p-3 border border-primary shadow rounded" style="max-width: 600px;">
-    <h5 class="text-primary fw-bold mb-3">Prezentáció megosztása</h5>
-
-    
-    <div class="mb-3 relative">
-  <label class="form-label">Felhasználó:</label>
-
-  <!-- Keresőmező -->
-  <input
-    type="text"
-    class="form-control"
-    placeholder="Kezdj el gépelni"
-    value={userSearch}
-    on:input={onUserInput}
-    on:keydown={onUserKeydown}
-    on:focus={() => (showUserList = true)}
-    on:blur={closeListSoon}
-    autocomplete="off"
-  />
-
-  <!-- Találati lista -->
-  {#if showUserList && filteredUsers.length > 0}
-    <ul
-      class="position-absolute w-100 bg-white border rounded mt-1 shadow"
-      style="z-index: 50; max-height: 240px; overflow-y: auto;"
-      role="listbox"
+    <button
+      class="btn btn-outline-primary w-full sm:w-auto"
+      on:click={() => (showSharePanel = !showSharePanel)}
+      aria-expanded={showSharePanel}
+      aria-controls="share-panel"
     >
-      {#each filteredUsers as user, i}
-        <li
-          role="option"
-          aria-selected={i === highlightedIndex}
-          class="px-3 py-2 cursor-pointer {i === highlightedIndex ? 'bg-primary text-white' : 'bg-white'}"
-          on:mousedown={() => chooseUser(user)}  
-        >
-          {user.username}
-        </li>
-      {/each}
-    </ul>
-  {:else if showUserList && userSearch.trim().length > 0}
-    <div class="position-absolute w-100 bg-white border rounded mt-1 shadow px-3 py-2 text-muted" style="z-index: 50;">
-      Nincs találat
-    </div>
-  {/if}
+      Prezentáció megosztása
+    </button>
+  </div>
 
-  <!-- Kis jelzés, ki van kiválasztva -->
-  {#if selectedUserId}
-    <div class="form-text mt-1">
-      Kiválasztott: {allUsers.find(u => u.id === selectedUserId)?.username}
+  {#if showSharePanel}
+    <!-- ✅ Megosztó panel: mobilon teljes szélesség, középre igazítva -->
+    <div
+      id="share-panel"
+      class="card w-full sm:max-w-lg mt-1 p-3 border border-primary/60 shadow rounded mx-auto"
+    >
+      <h5 class="text-primary fw-bold mb-3">Prezentáció megosztása</h5>
+
+      <!-- Mezők: mobilon egymás alatt, sm+ két oszlop -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Felhasználó kereső -->
+        <div class="relative">
+          <label class="form-label">Felhasználó:</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Kezdj el gépelni"
+            value={userSearch}
+            on:input={onUserInput}
+            on:keydown={onUserKeydown}
+            on:focus={() => (showUserList = true)}
+            on:blur={closeListSoon}
+            autocomplete="off"
+          />
+
+          {#if showUserList && filteredUsers.length > 0}
+            <ul
+              class="position-absolute w-100 bg-white border rounded mt-1 shadow"
+              style="z-index: 50; max-height: 240px; overflow-y: auto;"
+              role="listbox"
+            >
+              {#each filteredUsers as user, i}
+                <li
+                  role="option"
+                  aria-selected={i === highlightedIndex}
+                  class="px-3 py-2 cursor-pointer {i === highlightedIndex ? 'bg-primary text-white' : 'bg-white'}"
+                  on:mousedown={() => chooseUser(user)}
+                >
+                  {user.username}
+                </li>
+              {/each}
+            </ul>
+          {:else if showUserList && userSearch.trim().length > 0}
+            <div
+              class="position-absolute w-100 bg-white border rounded mt-1 shadow px-3 py-2 text-muted"
+              style="z-index: 50;"
+            >
+              Nincs találat
+            </div>
+          {/if}
+
+          {#if selectedUserId}
+            <div class="form-text mt-1">
+              Kiválasztott: {allUsers.find(u => u.id === selectedUserId)?.username}
+            </div>
+          {/if}
+        </div>
+
+        <!-- Jogosultság -->
+        <div>
+          <label class="form-label">Jogosultság:</label>
+          <select bind:value={selectedPermission} class="form-select w-full">
+            <option value="read">Csak olvasás</option>
+            <option value="edit">Szerkesztés</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Akciógombok: mobilon w-full -->
+      <div class="flex flex-col sm:flex-row gap-2 justify-end mt-3">
+        <button
+          class="btn btn-primary w-full sm:w-auto"
+          on:click={sharePresentation}
+          disabled={!selectedUserId || !selectedPermission}
+        >
+          Megosztás
+        </button>
+        <button class="btn btn-secondary w-full sm:w-auto" on:click={() => (showSharePanel = false)}>
+          Mégse
+        </button>
+      </div>
     </div>
   {/if}
 </div>
 
-    <div class="mb-3">
-      <label class="form-label">Jogosultság:</label>
-      <select bind:value={selectedPermission} class="form-select">
-        <option value="read">Csak olvasás</option>
-        <option value="edit">Szerkesztés</option>
-      </select>
-    </div>
-
-    <div class="d-flex gap-3 justify-content-end">
-      <button
-        class="btn btn-primary"
-        on:click={sharePresentation}
-        disabled={!selectedUserId || !selectedPermission}
-      >
-        Megosztás
-      </button>
-      <button class="btn btn-secondary" on:click={() => showSharePanel = false}>
-        Mégse
-      </button>
-    </div>
-  </div>
-{/if}
-  </div>
 
   {#if !showPresentation}
-    <div class="d-flex align-items-center gap-3 mb-4">
+  <!-- ✅ RESZPONZÍV akciósor -->
+  <div class="editor-actions flex flex-wrap items-center gap-3 md:gap-4 mb-4">
+    <!-- Vissza -->
     <button
-    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition"
-    on:click={goToDashboard}
-  >
+      class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition w-full sm:w-auto"
+      on:click={goToDashboard}
+    >
       Vissza a dashboardra
-  </button>
+    </button>
+
+    <!-- Típusválasztó -->
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
       <label for="slideType" class="form-label mb-0">Dia típusa:</label>
-      <select id="slideType" bind:value={newSlideType} class="form-select w-auto">
+      <select id="slideType" bind:value={newSlideType} class="form-select w-full sm:w-56">
         <option value="text">Csak szöveg</option>
         <option value="video">Csak videó (YouTube)</option>
         <option value="image-base64">Kép és szöveg</option>
       </select>
-      <button class="btn btn-success" on:click={addSlide} disabled={!hasEditPermission}>Új dia hozzáadása</button>
-      <div class="my-8">
-  <button
-    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
-    on:click={toggleComments}
-  >
-    {commentsVisible ? "Kommentek elrejtése" : "Kommentek megjelenítése"}
-  </button>
+    </div>
 
+    <!-- Fő akciók: mobilon egymás alatt, desktopon jobbra -->
+    <div class="md:ms-auto flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <button
+        class="btn btn-success w-full sm:w-auto"
+        on:click={addSlide}
+        disabled={!hasEditPermission}
+      >
+        Új dia hozzáadása
+      </button>
+
+      <button
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded w-full sm:w-auto"
+        on:click={toggleComments}
+      >
+        {commentsVisible ? "Kommentek elrejtése" : "Kommentek megjelenítése"}
+      </button>
+    </div>
+  </div>
+
+  <!-- ✅ A komment panel külön blokkban, teljes szélességen -->
   {#if commentsVisible}
-    <div class="mt-4 p-4 bg-white border rounded shadow">
+    <div class="mt-2 sm:mt-3 p-4 bg-white border rounded shadow">
       <h3 class="text-xl font-bold mb-4">Kommentek</h3>
 
       {#if isLoadingComments}
@@ -589,20 +642,17 @@ async function handlePresentationRefresh() {
         <p>Még nincs komment ehhez a prezentációhoz.</p>
       {:else}
         <div class="max-h-52 overflow-y-auto pr-2 border rounded-md">
-  <ul class="space-y-4 px-2 py-2">
-    {#each comments as comment}
-      <li class="border-b pb-2">
-        
-        <div class="text-sm text-gray-600">
-          {comment.username ?? comment.userId} – {new Date(comment.createdAt).toLocaleString()}
+          <ul class="space-y-4 px-2 py-2">
+            {#each comments as comment}
+              <li class="border-b pb-2">
+                <div class="text-sm text-gray-600">
+                  {comment.username ?? comment.userId} – {new Date(comment.createdAt).toLocaleString()}
+                </div>
+                <div class="text-md text-gray-800 whitespace-pre-wrap">{comment.content}</div>
+              </li>
+            {/each}
+          </ul>
         </div>
-
-        <div class="text-md text-gray-800 whitespace-pre-wrap">{comment.content}</div>
-      </li>
-    {/each}
-  </ul>
-</div>
-
       {/if}
 
       <div class="mt-4">
@@ -614,110 +664,136 @@ async function handlePresentationRefresh() {
         ></textarea>
         <button
           on:click={postComment}
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           Komment küldése
         </button>
       </div>
     </div>
   {/if}
-</div>
 
 
 
 
-    </div>
+
+    
 
 <div class="btn-group ms-2 flex-wrap" style="gap: 4px">
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Félkövér: **[szöveg]** ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('**[szöveg]**')}>B</button>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Dőlt: _[szöveg]_ ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('_[szöveg]_')}>I</button>
-   
-   <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="Félkövér+dőlt: ***[szöveg]***"
-    on:click={() => copyToClipboard('***[szöveg]***')}>BI</button>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Áthúzott: ~~[szöveg]~~ ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('~~[szöveg]~~')}>S</button>
+<Tooltip variant="dark" text={`Félkövér: **[szöveg]**
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('**[szöveg]**')}>B</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Címsor 1: # [szöveg] ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('# [szöveg]')}>H1</button>
+  <Tooltip variant="dark" text={`Dőlt: _[szöveg]_
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('_[szöveg]_')}>I</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Címsor 2: ## [szöveg] ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('## [szöveg]')}>H2</button>
+  <Tooltip variant="dark" text={`Félkövér+dőlt: ***[szöveg]***
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('***[szöveg]***')}>BI</button>
+  </Tooltip>
 
-<button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="Címsor 3: ### [szöveg] ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('### [szöveg]')}>H3</button>
+  <Tooltip variant="dark" text={`Áthúzott: ~~[szöveg]~~
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('~~[szöveg]~~')}>S</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="Címsor 4: #### [szöveg] ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('#### [szöveg]')}>H4</button>
+  <Tooltip variant="dark" text={`Címsor 1: # [szöveg]
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('# [szöveg]')}>H1</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Idézet: > [szöveg] ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('> [szöveg]')}>❝</button>
+  <Tooltip variant="dark" text={`Címsor 2: ## [szöveg]
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('## [szöveg]')}>H2</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Listaelem: - [szöveg] ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('- [szöveg]')}>•</button>
+  <Tooltip variant="dark" text={`Címsor 3: ### [szöveg]
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('### [szöveg]')}>H3</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Link: [szöveg](https://url.hu) ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('[szöveg](https://url.hu)')}>🔗</button>
+  <Tooltip variant="dark" text={`Címsor 4: #### [szöveg]
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('#### [szöveg]')}>H4</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-    title="Kódrészlet: `[szöveg]` ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('`[szöveg]`')}>{"</>"}</button>
+  <Tooltip variant="dark" text={`Idézet: > [szöveg]
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('> [szöveg]')}>❝</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission} title="Táblázat váz ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-    on:click={() => copyToClipboard('| Fejléc 1 | Fejléc 2 |\n| --- | --- |\n| [szöveg] | [szöveg] |')}>⎇</button>
+  <Tooltip variant="dark" text={`Listaelem: - [szöveg]
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('- [szöveg]')}>•</button>
+  </Tooltip>
 
-  <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-  title="Balra igazított blokk ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-  on:click={() => copyToClipboard('<div style="text-align:left">[szöveg]</div>')}>L</button>
+  <Tooltip variant="dark" text={`Link: [szöveg](https://url.hu)
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('[szöveg](https://url.hu)')}>🔗</button>
+  </Tooltip>
 
-<button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-  title="Középre igazított blokk ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-  on:click={() => copyToClipboard('<div style="text-align:center">[szöveg]</div>')}>C</button>
+  <Tooltip variant="dark" text={`Kódrészlet: \`[szöveg]\`
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('`[szöveg]`')}>{"</>"}</button>
+  </Tooltip>
 
-<button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
-  title="Jobbra igazított blokk ,
-     a gomb kimásolja a megfelelő karaktereket,
-     csak ctrl+v kell megnyomni a szöveg mezőben"
-  on:click={() => copyToClipboard('<div style="text-align:right">[szöveg]</div>')}>R</button>    
+  <Tooltip variant="dark" text={`Táblázat váz
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('| Fejléc 1 | Fejléc 2 |\n| --- | --- |\n| [szöveg] | [szöveg] |')}>⎇</button>
+  </Tooltip>
+
+  <Tooltip variant="dark" text={`Balra igazított blokk
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('<div style="text-align:left">[szöveg]</div>')}>L</button>
+  </Tooltip>
+
+  <Tooltip variant="dark" text={`Középre igazított blokk
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('<div style="text-align:center">[szöveg]</div>')}>C</button>
+  </Tooltip>
+
+  <Tooltip variant="dark" text={`Jobbra igazított blokk
+A gomb kimásolja a megfelelő karaktereket,
+csak Ctrl+V kell megnyomni a szöveg mezőben`}>
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled={!hasEditPermission}
+      on:click={() => copyToClipboard('<div style="text-align:right">[szöveg]</div>')}>R</button>
+  </Tooltip>
+
+      
 </div>
 
     {#each slides as slide, index}
@@ -753,7 +829,7 @@ async function handlePresentationRefresh() {
       {slide.imagePath === null && slide.content?.includes("youtube.com")
         ? "YouTube link:"
         : "Szöveg:"}
-        <button class="btn btn-danger btn-sm" type="button" on:click={() => deleteSlide(slide)}>
+        <button class="btn btn-danger btn-sm" disabled={!hasEditPermission} type="button" on:click={() => deleteSlide(slide)}>
      Dia törlése
   </button>
     </label>

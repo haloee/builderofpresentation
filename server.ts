@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import fs from "fs";
 import path from "path";
 import { db } from "./src/lib/server/db";
-import { presentations, slides } from "./src/lib/server/db/schema";
+import { presentations, slides  } from "./src/lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import { cors } from "hono/cors";
 
@@ -14,7 +14,7 @@ app.use(
     cors({
       origin: "*", // 🚀 Engedélyezzük a frontend elérését
       allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Engedélyezett HTTP metódusok
-      allowHeaders: ["Content-Type"], // Engedélyezett fejléc
+      allowHeaders: ["Content-Type", "X-User-Id"], // Engedélyezett fejléc
     })
   );
 

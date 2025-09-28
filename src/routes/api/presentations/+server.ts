@@ -48,7 +48,7 @@ export const GET: RequestHandler = async ({ locals }) => {
  * POST /api/presentations
  * Új prezentáció létrehozása
  */
-export const POST: RequestHandler = async ({ request, locals }) => {
+/* export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -68,6 +68,44 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   return new Response(JSON.stringify({ success: true, presentation: newPresentation }), {
     headers: { "Content-Type": "application/json" },
   });
+}; */
+export const POST: RequestHandler = async ({ request, locals }) => {
+  if (!locals.user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+
+  const { title } = await request.json();
+  if (!title || !title.trim()) {
+    return new Response(JSON.stringify({ error: "Title is required" }), { status: 400 });
+  }
+
+  const id = crypto.randomUUID();
+  const imageFolderPath = `/images/${crypto.randomUUID()}`;
+
+  // 1) beszúrás
+  await db.insert(presentations).values({
+    id,
+    title: title.trim(),
+    ownerId: locals.user.id,
+    imageFolderPath
+  });
+
+  // 2) a frissen beszúrt rekord visszaolvasása
+  const created = await db
+    .select()
+    .from(presentations)
+    .where(eq(presentations.id, id))
+    .limit(1);
+
+  if (!created[0]) {
+    return new Response(JSON.stringify({ error: "Insert failed" }), { status: 500 });
+  }
+
+  // 3) tényleges rekord visszaküldése
+  return new Response(
+    JSON.stringify({ success: true, presentation: created[0] }),
+    { status: 201, headers: { "Content-Type": "application/json" } }
+  );
 };
 
 /**

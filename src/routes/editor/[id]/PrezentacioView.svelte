@@ -62,6 +62,14 @@ function requestRefreshCycle() {
     // Nem reloadolunk, hanem szólunk a szülőnek
     dispatch("refresh");
   }
+function hardRefresh() {
+    try {
+      // jelző a szülőnek: nyissa meg újra a prezentáció nézetet
+      sessionStorage.setItem('reopenPresentation', '1');
+    } finally {
+      window.location.reload(); // marad a teljes reload
+    }
+  }  
   onMount(fetchSlides);
 </script>
 
@@ -71,10 +79,9 @@ function requestRefreshCycle() {
 
 <section class="presentation-container">
   <h2 class="h3">Prezentáció nézet</h2>
-  <button on:click={() => window.location.reload()} class="btn btn-secondary">
-
-    Frissítés
-  </button>
+  <button on:click={hardRefresh} class="btn btn-secondary">
+  Frissítés
+</button>
 </section>
 
 <!-- 📌 DIÁK MEGJELENÍTÉSE REVEAL.JS-EL -->

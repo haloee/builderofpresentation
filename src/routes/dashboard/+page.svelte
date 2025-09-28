@@ -69,40 +69,63 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each presentations as presentation}
-        <div class="p-5 bg-white border border-gray-300 rounded-xl shadow-lg transition transform hover:scale-105">
-          <h3 class="text-lg font-semibold text-gray-700 cursor-pointer" on:click={() => openPresentation(presentation.id)}>
-            {presentation.title}
-          </h3>
-          <button
-            class="mt-3 text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-            on:click={() => deletePresentation(presentation.id)}
-          >
-            Ideiglenes törlés
-          </button>
-        </div>
+        <div
+  class="p-5 bg-white border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg
+         transform hover:scale-[1.01] flex flex-col min-h-[150px] w-full"
+>
+  <h3
+    class="card-title text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 leading-tight
+           break-words hyphens-auto overflow-hidden cursor-pointer"
+    title={presentation.title}
+    on:click={() => openPresentation(presentation.id)}
+  >
+    {presentation.title}
+  </h3>
+
+  <button
+    class="mt-3 md:mt-auto text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded self-start"
+    on:click={() => deletePresentation(presentation.id)}
+  >
+    Ideiglenes törlés
+  </button>
+</div>
+
       {/each}
     </div>
   </div>
 
   {#if deletedPresentations.length > 0}
-    <div class="max-w-2xl w-full bg-red-50 border border-red-200 shadow-lg rounded-xl p-6">
-      <h2 class="text-2xl font-bold text-red-800 mb-4 text-center">  Törölt prezentációk (15 napig visszaállítható)</h2>
+  <div class="max-w-2xl w-full bg-red-50 border border-red-200 shadow-lg rounded-xl p-6">
+    <h2 class="text-2xl font-bold text-red-800 mb-4 text-center">
+      Törölt prezentációk (15 napig visszaállítható)
+    </h2>
 
-      <ul class="space-y-4">
-        {#each deletedPresentations as presentation}
-          <li class="p-4 bg-white rounded-lg shadow flex justify-between items-center">
-            <span class="text-gray-800">{presentation.title}</span>
-            <button
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-              on:click={() => restorePresentation(presentation.id)}
+    <ul class="space-y-4">
+      {#each deletedPresentations as presentation}
+        <li class="p-4 bg-white rounded-lg shadow flex items-center gap-4">
+          <!-- Cím: rugalmas, ellipszis -->
+          <div class="flex-1 min-w-0">
+            <span
+              class="block text-gray-800 truncate"
+              title={presentation.title}
             >
-               Visszaállítás
-            </button>
-          </li>
-        {/each}
-      </ul>
-    </div>
-  {/if}
+              {presentation.title}
+            </span>
+          </div>
+
+          <!-- Gomb: ne zsugorodjon -->
+          <button
+            class="shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+            on:click={() => restorePresentation(presentation.id)}
+          >
+            Visszaállítás
+          </button>
+        </li>
+      {/each}
+    </ul>
+  </div>
+{/if}
+
   {#if sharedPresentations.length > 0}
   <div class="max-w-4xl w-full bg-blue-50 border border-blue-200 shadow-lg rounded-xl p-6">
     <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">
@@ -124,5 +147,14 @@
     </ul>
   </div>
 {/if}
+<style>
+  /* 2 soros clamp „…”-al (modern böngészőkben támogatott) */
+  .card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;      /* max 2 sor */
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+  }
+</style>
 
 </section>
