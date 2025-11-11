@@ -76,10 +76,7 @@
         }
 
         // 🔹 Automatikus képbetöltés a megfelelő mappából
-        slides = slides.map(slide => ({
-            ...slide,
-            imagePath: slide.imagePath ? `http://localhost:3000/images/${presentationId}/${slide.imagePath}` : null
-        }));
+        
 // ✅ Jogosultság lekérdezése
         try {
           const permissionRes = await fetch(`http://localhost:5173/api/presentations/${presentationId}/permission`);

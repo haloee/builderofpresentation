@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db";
 import { slides } from "$lib/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { RequestEvent } from "@sveltejs/kit";
 
 /**
@@ -15,7 +15,7 @@ export async function GET(event: RequestEvent) {
       return new Response(JSON.stringify({ error: "Presentation ID is required" }), { status: 400 });
     }
   
-    const slideData = await db.select().from(slides).where(eq(slides.presentationId, presentationId));
+    const slideData = await db.select().from(slides).where(eq(slides.presentationId, presentationId)).orderBy(asc(slides.createdAt));
   
     return new Response(JSON.stringify({ slides: slideData ?? [] }), {
       headers: { "Content-Type": "application/json" },

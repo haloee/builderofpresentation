@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { db } from "./src/lib/server/db";
 import { presentations, slides  } from "./src/lib/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { cors } from "hono/cors";
 
 const app = new Hono();
@@ -47,7 +47,7 @@ app.get("/api/presentations/:presentationId/slides", async (c) => {
     }
 
     try {
-        const slidesData = await db.select().from(slides).where(eq(slides.presentationId, presentationId));
+        const slidesData = await db.select().from(slides).where(eq(slides.presentationId, presentationId)).orderBy(asc(slides.createdAt));
         console.log("📌 Diák sikeresen lekérve:", slidesData);
         return c.json({ slides: slidesData });
     } catch (error) {

@@ -1,4 +1,4 @@
-import { mysqlTable, varchar,text,mediumtext, datetime, primaryKey } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar,text,mediumtext, datetime, primaryKey, timestamp } from "drizzle-orm/mysql-core";
 import { sql } from "drizzle-orm"; // Helyes import az sql függvényhez
 
 export const users=mysqlTable("users",{
@@ -35,6 +35,7 @@ export const slides = mysqlTable("slides", {
 	content: text("content"),
 	imagePath: mediumtext("imagePath"), // Új mező a képek tárolására
   videoPath: text("videoPath"),
+  createdAt: timestamp("created_at").defaultNow(),
   });
 
   export const presentationComments = mysqlTable("presentation_comments", {
