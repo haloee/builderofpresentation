@@ -15,6 +15,7 @@ services:
       - --default-authentication-plugin=mysql_native_password
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+      - --event-scheduler=ON
     ports:
       - "3307:3306" # kívül 3307, belül 3306
     volumes:

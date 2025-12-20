@@ -71,12 +71,11 @@ INSERT INTO users (id, username, email, password_hash) VALUES
 ON DUPLICATE KEY UPDATE username = VALUES(username);
 
 -- MINTA PREZENTÁCIÓ
-INSERT INTO presentations (id, title, owner_id, image_folder_path)
+INSERT INTO presentations (id, title, owner_id)
 VALUES (
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-  'Minta prezentáció',
-  '11111111-1111-1111-1111-111111111111',
-  '/images/sample'
+  'Minta prezentacio',
+  '11111111-1111-1111-1111-111111111111'
 )
 ON DUPLICATE KEY UPDATE title = VALUES(title);
 
@@ -85,7 +84,7 @@ INSERT INTO slides (id, presentation_id, content)
 VALUES (
   'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-  '# Üdvözlő dia\n\nEz egy minta tartalom.'
+  '# Udvozlo dia\n\nEz egy minta tartalom.'
 )
 ON DUPLICATE KEY UPDATE content = VALUES(content);
 
@@ -104,9 +103,18 @@ VALUES (
   'cccccccc-cccc-cccc-cccc-cccccccccccc',
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
   '2b7d0eaf-842f-4cf0-8456-bd2cf0b3659e',
-  'Ez egy minta komment a szakdolgozat demóhoz.'
+  'Ez egy minta komment a szakdolgozat demohoz.'
 )
 ON DUPLICATE KEY UPDATE content = VALUES(content);
 
 ALTER TABLE slides
   ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+SET GLOBAL event_scheduler = ON;
+
+CREATE EVENT IF NOT EXISTS delete_old_presentations
+ON SCHEDULE EVERY 1 MINUTE
+DO
+  DELETE FROM presentations
+  WHERE deleted_at IS NOT NULL
+    AND deleted_at < NOW() - INTERVAL 1 MINUTE;
