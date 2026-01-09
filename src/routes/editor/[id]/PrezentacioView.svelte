@@ -13,19 +13,19 @@
   const presentationId = $page.params.id;
 
   if (!presentationId) {
-    console.error("❌ HIBA: A presentationId hiányzik!");
+    console.error(" HIBA: A presentationId hiányzik!");
     errorMessage = "Nem található a prezentáció azonosító!";
     isLoading = false;
     return;
   }
 
-  console.log(`📌 Diák lekérése: http://localhost:3000/api/presentations/${presentationId}/slides`);
+  console.log(` Diák lekérése: http://localhost:3000/api/presentations/${presentationId}/slides`);
 
   try {
     const res = await fetch(`http://localhost:3000/api/presentations/${presentationId}/slides`);
     if (!res.ok) {
       const errorData = await res.json();
-      console.error("⚠️ API hiba:", errorData);
+      console.error(" API hiba:", errorData);
       errorMessage = `Hiba történt a diák lekérésekor: ${errorData.error}`;
       isLoading = false;
       return;
@@ -35,7 +35,7 @@
     slides = data.slides;
     isLoading = false;
 
-    await tick(); // ⏳ várjuk meg, hogy a DOM renderelje a {#each} blokkokat
+    await tick(); //  várjuk meg, hogy a DOM renderelje a {#each} blokkokat
 
     const Reveal = (await import("reveal.js")).default;
     await Reveal.initialize({
@@ -50,10 +50,10 @@
       center: true
     });
 
-    Reveal.sync(); // 🧠 ha a render utáni frissítés kell
+    Reveal.sync(); //  ha a render utáni frissítés kell
 
   } catch (error) {
-    console.error("⚠️ Hálózati hiba:", error);
+    console.error(" Hálózati hiba:", error);
     errorMessage = "Nem sikerült kapcsolódni a szerverhez!";
     isLoading = false;
   }
@@ -73,7 +73,7 @@ function hardRefresh() {
   onMount(fetchSlides);
 </script>
 
-<!-- 📌 REVEAL.JS STÍLUSOK -->
+<!--  REVEAL.JS STÍLUSOK -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/white.css">
 
@@ -84,7 +84,7 @@ function hardRefresh() {
 </button>
 </section>
 
-<!-- 📌 DIÁK MEGJELENÍTÉSE REVEAL.JS-EL -->
+<!--  DIÁK MEGJELENÍTÉSE REVEAL.JS-EL -->
 {#if isLoading}
   <p>Betöltés...</p>
 {:else if errorMessage}

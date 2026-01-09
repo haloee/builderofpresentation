@@ -25,7 +25,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
-    console.error("❌ Jogosultság módosítási hiba:", err);
+    console.error("Jogosultság módosítási hiba:", err);
     return new Response(JSON.stringify({ error: 'Nem sikerült módosítani a jogosultságot' }), {
       status: 500,
     });

@@ -25,40 +25,40 @@
   let showUserList = false;
   let highlightedIndex = -1;
   let toggleViewBtn;
-  // 📌 Diák lekérése az API-ból
+  // Diák lekérése az API-ból
  async function fetchSlides() {
     const presentationId = $page.params?.id;
 
     if (!presentationId) {
-        console.error("❌ HIBA: A `presentationId` üres vagy undefined!");
+        console.error("HIBA: A `presentationId` üres vagy undefined!");
         alert("Nem található a prezentáció azonosító!");
         return;
     }
 
-    console.log(`📌 Lekérdezzük a diák listáját: http://localhost:3000/api/presentations/${presentationId}/slides`);
+    console.log(`Lekérdezzük a diák listáját: http://localhost:3000/api/presentations/${presentationId}/slides`);
 
     try {
         // 🔹 Diák lekérése
         const res = await fetch(`http://localhost:3000/api/presentations/${presentationId}/slides`);
         if (!res.ok) {
             const errorData = await res.json();
-            console.error("⚠️ API hiba:", errorData);
+            console.error("API hiba:", errorData);
             alert(`Hiba történt a diák lekérésekor: ${errorData.error}`);
             return;
         }
 
         const data = await res.json();
-        console.log("📌 Sikeres válasz a szervertől:", data);
+        console.log("Sikeres válasz a szervertől:", data);
 
         if (Array.isArray(data.slides)) {
             slides = [...data.slides];
         } else {
-            console.error("⚠️ Váratlan API válasz:", data);
+            console.error("Váratlan API válasz:", data);
             alert("A szerver nem megfelelő formátumú adatot küldött!");
         }
 
         // 🔹 Mappa elérési útvonalának lekérése
-        console.log(`📌 Mappa elérési út lekérése: http://localhost:3000/api/presentations/${presentationId}/folder`);
+        console.log(`Mappa elérési út lekérése: http://localhost:3000/api/presentations/${presentationId}/folder`);
         
         const folderRes = await fetch(`http://localhost:3000/api/presentations/${presentationId}/folder`);
         if (folderRes.ok) {
@@ -66,34 +66,34 @@
             folderPath = folderData.path || "";
 
             if (!folderPath) {
-                console.warn("⚠️ Nem található mentett mappa!");
+                console.warn(" Nem található mentett mappa!");
                 alert("Nincs kiválasztott mappa a prezentációhoz!");
             } else {
-                console.log("📂 Mentett mappa elérési útvonala:", folderPath);
+                console.log(" Mentett mappa elérési útvonala:", folderPath);
             }
         } else {
-            console.warn("⚠️ Nem sikerült lekérni a mappa elérési útvonalát.");
+            console.warn(" Nem sikerült lekérni a mappa elérési útvonalát.");
         }
 
         // 🔹 Automatikus képbetöltés a megfelelő mappából
         
-// ✅ Jogosultság lekérdezése
+// Jogosultság lekérdezése
         try {
           const permissionRes = await fetch(`http://localhost:5173/api/presentations/${presentationId}/permission`);
           if (permissionRes.ok) {
             const permData = await permissionRes.json();
             hasEditPermission = permData.permission === "edit";
-            console.log("🎯 Jogosultság:", permData.permission);
+            console.log("Jogosultság:", permData.permission);
           } else {
-            console.warn("⚠️ Nem sikerült lekérni a jogosultságot.");
+            console.warn("Nem sikerült lekérni a jogosultságot.");
             hasEditPermission = false;
           }
         } catch (err) {
-          console.error("❌ Jogosultság lekérési hiba:", err);
+          console.error("Jogosultság lekérési hiba:", err);
           hasEditPermission = false;
         }
     } catch (error) {
-        console.error("⚠️ Hálózati hiba:", error);
+        console.error("Hálózati hiba:", error);
         alert("Nem sikerült kapcsolódni a szerverhez!");
     }
 }
@@ -129,7 +129,7 @@ async function fetchUsers() {
     const data = await res.json();
     allUsers = data.users;
   } catch (err) {
-    console.error("❌ Felhasználók betöltése sikertelen:", err);
+    console.error(" Felhasználók betöltése sikertelen:", err);
   }
 }
 async function sharePresentation() {
@@ -151,14 +151,14 @@ async function sharePresentation() {
 
     if (!res.ok) {
       const error = await res.text();
-      console.error("❌ Megosztási hiba:", error);
+      console.error("Megosztási hiba:", error);
       alert("Nem sikerült megosztani a prezentációt.");
       return;
     }
 
-    alert("✅ Prezentáció megosztva!");
+    alert(" Prezentáció megosztva!");
   } catch (err) {
-    console.error("⚠️ Hiba megosztás közben:", err);
+    console.error(" Hiba megosztás közben:", err);
     alert("Nem sikerült csatlakozni a szerverhez.");
   }
 }
@@ -172,7 +172,7 @@ async function fetchComments() {
     const data = await res.json();
     comments = data.comments;
   } catch (err) {
-    console.error("⚠️ Hiba a kommentek lekérdezésekor:", err);
+    console.error(" Hiba a kommentek lekérdezésekor:", err);
     errorLoadingComments = "Nem sikerült betölteni a kommenteket.";
   } finally {
     isLoadingComments = false;
@@ -194,7 +194,7 @@ async function postComment() {
     await fetchComments(); // Frissítés
   } else {
     const errText = await res.text();
-    console.error("❌ Komment hiba:", errText);
+    console.error(" Komment hiba:", errText);
     alert("Nem sikerült elküldeni a kommentet.");
   }
 }
@@ -202,12 +202,12 @@ function toggleComments() {
   commentsVisible = !commentsVisible;
   if (commentsVisible) fetchComments();
 }
-  // 📌 Új dia hozzáadása az API-hoz
+  //  Új dia hozzáadása az API-hoz
   async function addSlide() {
     const presentationId = $page.params.id;
 
     if (!presentationId) {
-      console.error("❌ HIBA: Nincs Presentation ID!");
+      console.error(" HIBA: Nincs Presentation ID!");
       alert("Nem található a prezentáció azonosító!");
       return;
     }
@@ -222,7 +222,7 @@ function toggleComments() {
        ? "default.png" : newSlideType === "image-base64" ? "BASE64_PLACEHOLDER" : null
     };
 
-    console.log("📌 Új dia küldése:", JSON.stringify(newSlide));
+    console.log(" Új dia küldése:", JSON.stringify(newSlide));
 
     try {
       const res = await fetch(`http://localhost:3000/api/presentations/${presentationId}/slides`, {
@@ -233,7 +233,7 @@ function toggleComments() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error("⚠️ API hiba:", errorData);
+        console.error(" API hiba:", errorData);
         alert(`Hiba történt a dia hozzáadásakor: ${errorData.error}`);
         return;
       }
@@ -241,12 +241,12 @@ function toggleComments() {
       const data = await res.json();
       slides = [...slides, data.slide]; // 🔹 Új dia hozzáadása
     } catch (error) {
-      console.error("⚠️ Hálózati hiba:", error);
+      console.error(" Hálózati hiba:", error);
       alert("Nem sikerült kapcsolódni a szerverhez!");
     }
   }
 
-  // 📌 Automatikus mentés egyedi diákra
+  //  Automatikus mentés egyedi diákra
   function saveSlide(slide) {
     // Meglévő időzítő törlése, ha van
     if (saveTimeouts.has(slide.id)) {
@@ -263,12 +263,12 @@ function toggleComments() {
         });
 
         if (!res.ok) {
-          console.error("⚠️ Hiba a dia mentés közben");
+          console.error(" Hiba a dia mentés közben");
         } else {
-          console.log(`✅ Dia mentve: ${slide.id}`);
+          console.log(` Dia mentve: ${slide.id}`);
         }
       } catch (error) {
-        console.error("⚠️ Hálózati hiba mentés közben:", error);
+        console.error(" Hálózati hiba mentés közben:", error);
       }
     }, 3000);
 
@@ -278,15 +278,15 @@ function toggleComments() {
 
   async function selectFolder() {
     try {
-        const dirHandle = await window.showDirectoryPicker(); // 📌 Mappa kiválasztása
+        const dirHandle = await window.showDirectoryPicker(); //  Mappa kiválasztása
         const folderPath = dirHandle.name; // Csak a mappa neve, de ez kevés!
 
-        console.log("📌 Kiválasztott mappa:", folderPath);
+        console.log(" Kiválasztott mappa:", folderPath);
 
-        // 📌 Mappa teljes elérési útjának lekérése a szerveren keresztül
+        //  Mappa teljes elérési útjának lekérése a szerveren keresztül
         const presentationId = $page.params?.id;
         if (!presentationId) {
-            console.error("❌ HIBA: Hiányzó Presentation ID!");
+            console.error(" HIBA: Hiányzó Presentation ID!");
             return;
         }
 
@@ -299,15 +299,15 @@ function toggleComments() {
 
         if (!res.ok) {
             const errorData = await res.json();
-            console.error("⚠️ API hiba:", errorData);
+            console.error(" API hiba:", errorData);
             alert(`Hiba történt a mappa mentésekor: ${errorData.error}`);
             return;
         }
 
-        console.log("✅ Mappa sikeresen elmentve az adatbázisba!");
+        console.log(" Mappa sikeresen elmentve az adatbázisba!");
 
     } catch (error) {
-        console.error("⚠️ Mappa kiválasztási hiba:", error);
+        console.error(" Mappa kiválasztási hiba:", error);
         alert("Nem sikerült kiválasztani a mappát!");
     }
 }
@@ -316,7 +316,7 @@ function toggleComments() {
 
 async function selectImage(slide) {
   if (!folderPath) {
-    alert("📂 Nincs kiválasztva mappa! Próbáld újra az oldal frissítése után.");
+    alert(" Nincs kiválasztva mappa! Próbáld újra az oldal frissítése után.");
     return;
   }
 
@@ -328,14 +328,14 @@ async function selectImage(slide) {
     const file = event.target.files[0];
     if (file) {
       const fileName = file.name;
-      console.log("📌 Kiválasztott kép:", fileName);
+      console.log(" Kiválasztott kép:", fileName);
 
-      slide.imagePath = fileName; // 🔹 Csak a fájlnevet mentjük el, az elérési út már megvan
-      saveSlide(slide); // 🔹 Azonnali mentés
+      slide.imagePath = fileName; //  Csak a fájlnevet mentjük el, az elérési út már megvan
+      saveSlide(slide); //  Azonnali mentés
     }
   };
 
-  input.click(); // 🔹 Megnyitja a fájlkezelőt
+  input.click(); //  Megnyitja a fájlkezelőt
 }
 
 let selectedSlide = null;
@@ -357,15 +357,15 @@ async function deleteSlide(slide) {
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error("❌ API hiba dia törlésekor:", errorText);
+      console.error(" API hiba dia törlésekor:", errorText);
       alert(`Nem sikerült törölni a diát: ${res.status} - ${res.statusText}`);
       return;
     }
 
-    console.log("✅ Dia törölve:", slide.id);
+    console.log(" Dia törölve:", slide.id);
     slides = slides.filter(s => s.id !== slide.id);
   } catch (error) {
-    console.error("❌ Hálózati hiba törlés közben:", error);
+    console.error(" Hálózati hiba törlés közben:", error);
   }
 }
 
@@ -455,9 +455,9 @@ async function copyToClipboard(text) {
         document.execCommand("copy");
         document.body.removeChild(ta);
       }
-      console.log("📋 Másolva:", text);
+      console.log(" Másolva:", text);
     } catch (e) {
-      console.error("❌ Másolási hiba:", e);
+      console.error(" Másolási hiba:", e);
       alert("Nem sikerült a másolás a vágólapra.");
     }
   }
@@ -477,7 +477,7 @@ async function handlePresentationRefresh() {
 </script>
 
 <section class="container my-4">
-  <!-- ✅ RESZPONZÍV fejléc: a gombok mobilon w-full, egymás alatt; desktopon egy sorban -->
+  <!--  RESZPONZÍV fejléc: a gombok mobilon w-full, egymás alatt; desktopon egy sorban -->
 <div class="editor-header flex flex-wrap items-center gap-3 md:gap-4 mb-4">
   <h2 class="h3 w-full sm:w-auto">Prezentáció szerkesztő</h2>
 
@@ -501,7 +501,7 @@ async function handlePresentationRefresh() {
   </div>
 
   {#if showSharePanel}
-    <!-- ✅ Megosztó panel: mobilon teljes szélesség, középre igazítva -->
+    <!--  Megosztó panel: mobilon teljes szélesség, középre igazítva -->
     <div
       id="share-panel"
       class="card w-full sm:max-w-lg mt-1 p-3 border border-primary/60 shadow rounded mx-auto"
@@ -587,7 +587,7 @@ async function handlePresentationRefresh() {
 
 
   {#if !showPresentation}
-  <!-- ✅ RESZPONZÍV akciósor -->
+  <!--  RESZPONZÍV akciósor -->
   <div class="editor-actions flex flex-wrap items-center gap-3 md:gap-4 mb-4">
     <!-- Vissza -->
     <button
@@ -626,7 +626,7 @@ async function handlePresentationRefresh() {
     </div>
   </div>
 
-  <!-- ✅ A komment panel külön blokkban, teljes szélességen -->
+  <!--  A komment panel külön blokkban, teljes szélességen -->
   {#if commentsVisible}
     <div class="mt-2 sm:mt-3 p-4 bg-white border rounded shadow">
       <h3 class="text-xl font-bold mb-4">Kommentek</h3>

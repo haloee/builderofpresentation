@@ -1,38 +1,40 @@
-# sv
+# README – Projekt futtatása (Docker + Bun + VS Code)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Ez az útmutató lépésről lépésre bemutatja:
+1) a szükséges programok telepítését/ellenőrzését  
+2) `.env` fájl létrehozását  
+3) Docker Engine indítását és `docker compose` futtatását  
+4) a projekt indítását VS Code-ban **3 terminállal** (`bun run dev`, `bun run server.ts`, `docker compose up -m`)
 
-## Creating a project
+---
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 1) Szükséges alkalmazások (telepítés / letöltés)
 
-```bash
-# create a new project in the current directory
-npx sv create
+### 1.1 Docker (Docker Engine + Docker Compose)
+**Docker Desktop (Windows / macOS / Linux):**  
+https://www.docker.com/products/docker-desktop/
 
-# create a new project in my-app
-npx sv create my-app
-```
+Telepítés után indítsd el a Docker Desktopot, és várd meg, amíg fut a **Docker Engine**.
 
-## Developing
+> Linuxon (ha nem Desktopot használsz): Docker Engine telepítés  
+> https://docs.docker.com/engine/install/  
+> Post-install (sudo nélküli docker):  
+> https://docs.docker.com/engine/install/linux-postinstall/
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+---
 
-```bash
-npm run dev
+### 1.2 Visual Studio Code
+Letöltés:  
+https://code.visualstudio.com/download
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+> Megjegyzés: **Visual Studio (IDE)** nem kötelező ehhez, elég a **Visual Studio Code**.
 
-## Building
+---
 
-To create a production version of your app:
+### 1.3 Bun
+Hivatalos telepítés:  
+https://bun.sh/docs/installation
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+**Windows (PowerShell):**
+```powershell
+irm https://bun.sh/install.ps1 | iex

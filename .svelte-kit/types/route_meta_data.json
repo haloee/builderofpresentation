@@ -1,0 +1,41 @@
+{
+	"/": [],
+	"/api/presentations": [
+		"src/routes/api/presentations/+server.ts"
+	],
+	"/api/presentations/[id]": [
+		"src/routes/api/presentations/[id]/+server.ts"
+	],
+	"/api/presentations/[id]/comments": [
+		"src/routes/api/presentations/[id]/comments/+server.ts"
+	],
+	"/api/presentations/[id]/delete": [
+		"src/routes/api/presentations/[id]/delete/+server.ts"
+	],
+	"/api/presentations/[id]/permissions/[userId]/edit": [
+		"src/routes/api/presentations/[id]/permissions/[userId]/edit/+server.ts"
+	],
+	"/api/presentations/[id]/permission": [
+		"src/routes/api/presentations/[id]/permission/+server.ts"
+	],
+	"/api/presentations/[id]/share": [
+		"src/routes/api/presentations/[id]/share/+server.ts"
+	],
+	"/api/presentations/[id]/slides": [
+		"src/routes/api/presentations/[id]/slides/+server.ts"
+	],
+	"/api/presentations/[id]/slides/[slideId]": [
+		"src/routes/api/presentations/[id]/slides/[slideId]/+server.ts"
+	],
+	"/api/presentations/[id]/undelete": [
+		"src/routes/api/presentations/[id]/undelete/+server.ts"
+	],
+	"/api/shared": [
+		"src/routes/api/shared/+server.ts"
+	],
+	"/api/users": [
+		"src/routes/api/users/+server.ts"
+	],
+	"/dashboard": [],
+	"/editor/[id]": []
+}

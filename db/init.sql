@@ -113,8 +113,8 @@ ALTER TABLE slides
 SET GLOBAL event_scheduler = ON;
 
 CREATE EVENT IF NOT EXISTS delete_old_presentations
-ON SCHEDULE EVERY 1 MINUTE
+ON SCHEDULE EVERY 1 hour
 DO
   DELETE FROM presentations
   WHERE deleted_at IS NOT NULL
-    AND deleted_at < NOW() - INTERVAL 1 MINUTE;
+    AND deleted_at < NOW() - INTERVAL 15 DAY;

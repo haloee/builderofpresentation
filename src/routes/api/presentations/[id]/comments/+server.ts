@@ -81,12 +81,12 @@ export const GET: RequestHandler = async ({ params }) => {
       id: presentationComments.id,
       presentationId: presentationComments.presentationId,
       userId: presentationComments.userId,
-      username: users.username,               // ⬅️ EZT IS KÉRJÜK LE
+      username: users.username,               // EZT IS KÉRJÜK LE
       content: presentationComments.content,
       createdAt: presentationComments.createdAt
     })
     .from(presentationComments)
-    .innerJoin(users, eq(users.id, presentationComments.userId))   // ⬅️ JOIN users
+    .innerJoin(users, eq(users.id, presentationComments.userId))   //  JOIN users
     .where(eq(presentationComments.presentationId, presentationId))
     .orderBy(presentationComments.createdAt);
 

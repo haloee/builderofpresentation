@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { customFetch } from '$lib/fetcher'; // ✅ Import custom fetch
+  import { customFetch } from '$lib/fetcher'; //  Import custom fetch
 
   let users = [
     { id: '11111111-1111-1111-1111-111111111111', username: 'testuser' },
@@ -11,21 +11,21 @@
   let isLoading = true;
   let error = "";
 
-  // 🔁 Felhasználók lekérése API-ból
+  //  Felhasználók lekérése API-ból
   onMount(async () => {
     try {
-      const res = await customFetch("/api/users"); // ✅ Cserélve
+      const res = await customFetch("/api/users"); 
       const data = await res.json();
       users = data.users;
     } catch (err) {
-      console.error("❌ Nem sikerült lekérni a felhasználókat:", err);
+      console.error(" Nem sikerült lekérni a felhasználókat:", err);
       error = "Nem sikerült lekérni a felhasználókat.";
     } finally {
       isLoading = false;
     }
   });
 
-  // ✅ Kiválasztott felhasználó mentése és navigálás
+  //  Kiválasztott felhasználó mentése és navigálás
   function selectUser(userId: string) {
     localStorage.setItem("userId", userId); // vagy selectedUserId
     goto("/dashboard");

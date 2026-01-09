@@ -15,7 +15,7 @@ export const PATCH: RequestHandler = async ({ params }) => {
   }
 
   try {
-    // ⏳ Beállítjuk a soft delete időpontját
+    
     await db.update(presentations)
       .set({ deletedAt: new Date() })
       .where(eq(presentations.id, id));
@@ -24,7 +24,7 @@ export const PATCH: RequestHandler = async ({ params }) => {
       status: 200
     });
   } catch (error) {
-    console.error('❌ HIBA soft delete közben:', error);
+    console.error(' HIBA soft delete közben:', error);
     return new Response(JSON.stringify({ error: 'Soft delete failed' }), {
       status: 500
     });

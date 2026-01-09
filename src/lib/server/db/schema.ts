@@ -44,7 +44,7 @@ export const slides = mysqlTable("slides", {
       .notNull()
       .references(() => presentations.id, { onDelete: "cascade" }),
   
-    userId: varchar("user_id", { length: 36 }).notNull(), // opcionálisan: .references(() => users.id, { onDelete: "cascade" })
+    userId: varchar("user_id", { length: 36 }).notNull(), // .references(() => users.id, { onDelete: "cascade" })
     content: text("content").notNull(),
     createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull()
   });

@@ -7,7 +7,7 @@ export const GET: RequestHandler = async () => {
     const allUsers = await db.select().from(users);
     return new Response(JSON.stringify({ users: allUsers }), { status: 200 });
   } catch (error) {
-    console.error("❌ Hiba a felhasználók lekérésekor:", error);
+    console.error("Hiba a felhasználók lekérésekor:", error);
     return new Response(JSON.stringify({ error: "Hiba történt" }), { status: 500 });
   }
 };
