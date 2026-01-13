@@ -1,10 +1,9 @@
 # README – Projekt futtatása (Docker + Bun + VS Code)
 
 Ez az útmutató lépésről lépésre bemutatja:
-1) a szükséges programok telepítését/ellenőrzését  
-2) `.env` fájl létrehozását  
-3) Docker Engine indítását és `docker compose` futtatását  
-4) a projekt indítását VS Code-ban **3 terminállal** (`bun run dev`, `bun run server.ts`, `docker compose up -m`)
+1) a szükséges programok telepítését/ellenőrzését   
+2) Docker Engine indítását és `docker compose` futtatását  
+3) a projekt indítását VS Code-ban **3 terminállal** (`bun run dev`, `bun run server.ts`, `docker compose up -m`)
 
 ---
 
